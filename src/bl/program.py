@@ -3,36 +3,66 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from statsmodels.tsa.api import Holt
-
+from statsmodels.tsa.api import SimpleExpSmoothing
+from statsmodels.tsa.api import ExponentialSmoothing
 
 class Program: 
     def __init__(self, window):
+        
         self.window = window
-        # print(self.window.frame.button.cget("text"))
-        self.window.frame.button.configure(command=self.holt)
+        
+        self.window.Holt.activator.configure(command=self.holt)
+        self.window.Winters.activator.configure(command=self.winters)
+        self.window.SimpleExpSmoothing.activator.configure(command=self.simple_exp_smoothing)
+        
         self.window.mainloop()
 
     def holt(self):
-        datos = self.window.file["TAVG"]
-        entrenamiento_porcentaje = 0.8
-        num_entrenamiento = int(len(datos) * entrenamiento_porcentaje)
-        entrenamiento = datos[:num_entrenamiento]
-        prueba = datos[num_entrenamiento:]
-        modelo = Holt(entrenamiento)
+    
+        data = self.window.file["TAVG"]
+        
+        training_percent = 0.8
+        nom_training = int(len(data) * training_percent)
+        training = data[:nom_training]
+        
+        prueba = data[nom_training:]
+        
+        modelo = Holt(training)
         ajuste = modelo.fit()
         proyeccion = ajuste.forecast(steps=len(prueba))
-        plt.plot(range(num_entrenamiento), entrenamiento, label='Entrenamiento')
-        plt.plot(range(num_entrenamiento, len(datos)), prueba, label='Prueba')
-        plt.plot(range(num_entrenamiento, len(datos)), proyeccion, label='Proyección')
+        
+        plt.plot(range(nom_training), training, label='Entrenamiento')
+        plt.plot(range(nom_training, len(data)), prueba, label='Prueba')
+        plt.plot(range(nom_training, len(data)), proyeccion, label='Proyección')
         plt.legend()
         plt.show()
-    
-    def obtainFile(self): 
-        datos = self.window.file["TAVG"]
-        modelo = Holt(datos)
-        ajuste = modelo.fit(optimized=True)
-        proyeccion = ajuste.forecast(steps=80)
-        plt.plot(datos, label='Datos')
-        plt.plot(range(len(datos), len(datos) + len(proyeccion)), proyeccion, label='Proyección')
+
+    def winters(self):
+        
+        data = self.window.file["TAVG"]
+        
+        modelo = ExponentialSmoothing(data, seasonal_periods=4, trend='add', seasonal='add')
+
+        ajuste = modelo.fit()
+
+        proyeccion = ajuste.forecast(steps=5)
+
+        plt.plot(data, label='data')
+        plt.plot(range(len(data), len(data) + len(proyeccion)), proyeccion, label='Proyección')
+        plt.legend()
+        plt.show()
+        
+    def simple_exp_smoothing(self):
+        
+        data = self.window.file["TAVG"]
+        
+        modelo = SimpleExpSmoothing(data)
+
+        ajuste = modelo.fit()
+
+        proyeccion = ajuste.forecast(steps=5)
+
+        plt.plot(data, label='datos')
+        plt.plot(range(len(data), len(data) + len(proyeccion)), proyeccion, label='Proyección')
         plt.legend()
         plt.show()
