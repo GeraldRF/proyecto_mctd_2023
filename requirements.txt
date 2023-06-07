@@ -1,0 +1,74 @@
+pandas
+scikit-learn
+matplotlib
+tk
+
+import math
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
+
+def regresion_lineal(file_path):
+    data = pd.read_csv(file_path)
+    # Preparación de datos para el aprendizaje automático
+    X = data[['TMAX', 'TMIN']]  # Variables independientes
+    y = data['TAVG']  # Variable dependiente
+
+    # División de los datos en conjuntos de entrenamiento y prueba (80% de entrenamiento)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    # Entrenamiento del modelo de regresión lineal
+    model = LinearRegression()
+    model.fit(X_train, y_train)
+
+    # Evaluación del modelo
+    y_pred = model.predict(X_test)
+    mse = mean_squared_error(y_test, y_pred)
+
+    # Realizar las predicciones basadas en los datos originales
+    y_pred = model.predict(X)
+
+    # Graficar los datos originales y la línea de regresión
+    plt.scatter(X['TMAX'], y, color='blue', label='Datos reales')
+    plt.plot(X['TMAX'], y_pred, color='red', linewidth=2, label='Regresión lineal')
+    plt.xlabel('TMAX')
+    plt.ylabel('TAVG')
+    plt.legend()
+    plt.show()
+
+    print(f"Error cuadrático medio (MSE): {mse}")
+
+def procesar_datos(file_path):
+    df = pd.read_csv(file_path)  # Leer el archivo CSV
+
+    # Convertir la columna 'DATE' al tipo de datos 'datetime'
+    df['DATE'] = pd.to_datetime(df['DATE'])
+
+    # Calcular el promedio de la columna 'TAVG'
+    promedio_tavg = df['TAVG'].mean()
+
+    # Obtener la temperatura máxima y mínima
+    temp_max = df['TMAX'].max()
+    temp_min = df['TMIN'].min()
+
+    # Filtrar los datos para obtener las fechas con TAVG mayor o igual al promedio
+    datos_superiores_promedio = df[df['TAVG'] >= promedio_tavg]
+
+    # Contar la cantidad de filas con TAVG mayor o igual al promedio
+    cantidad_superiores_promedio = len(datos_superiores_promedio)
+
+    # Obtener la fecha con la temperatura máxima
+    fecha_temp_max = df.loc[df['TMAX'].idxmax(), 'DATE']
+
+    # Obtener el nombre de la estación
+    nombre_estacion = df.loc[0, 'NAME']
+
+    # Imprimir los resultados
+    print(f"Promedio de TAVG: {promedio_tavg}")
+    print(f"Temperatura máxima: {temp_max}")
+    print(f"Temperatura mínima: {temp_min}")
+    print(f"Cantidad de TAVG >= promedio: {cantidad_superiores_promedio}")
+    print(f"Fecha con temperatura máxima: {fecha_temp_max}")
+    print(f"Nombre de la estación: {nombre_estacion}")
