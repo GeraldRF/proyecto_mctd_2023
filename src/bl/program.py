@@ -1,68 +1,112 @@
-import math
 import pandas as pd
-import matplotlib.pyplot as plt
-import numpy as np
 from statsmodels.tsa.api import Holt
-from statsmodels.tsa.api import SimpleExpSmoothing
 from statsmodels.tsa.api import ExponentialSmoothing
+from openpyxl import Workbook
+from openpyxl.drawing.image import Image as xlImage
+from PIL import Image
+import io
 
 class Program: 
     def __init__(self, window):
-        
         self.window = window
-        
-        self.window.Holt.activator.configure(command=self.holt)
-        self.window.Winters.activator.configure(command=self.winters)
-        self.window.SimpleExpSmoothing.activator.configure(command=self.simple_exp_smoothing)
-        
+        # print(self.window.frame.button.cget("text"))
+        self.window.buttonAnalyzeHolt.configure(command=self.holt)
+        self.window.buttonAnalyzeWinters.configure(command=self.winters)
+        self.window.buttonAnalyzeSimpleExp.configure(command=self.simplexExp)
+        self.window.restartButton.configure(command=self.restartDataResumeAndGraphics)
+        self.window.exportButton.configure(command=self.window.exportFileToExcel)
         self.window.mainloop()
 
     def holt(self):
-    
-        data = self.window.file["TAVG"]
-        
-        training_percent = 0.8
-        nom_training = int(len(data) * training_percent)
-        training = data[:nom_training]
-        
-        prueba = data[nom_training:]
-        
-        modelo = Holt(training)
+        datos = self.window.file["TAVG"]
+        entrenamiento_porcentaje = 0.8
+        num_entrenamiento = int(len(datos) * entrenamiento_porcentaje)
+        entrenamiento = datos[:num_entrenamiento]
+        prueba = datos[num_entrenamiento:]
+        modelo = Holt(entrenamiento)
         ajuste = modelo.fit()
         proyeccion = ajuste.forecast(steps=len(prueba))
-        
-        plt.plot(range(nom_training), training, label='Entrenamiento')
-        plt.plot(range(nom_training, len(data)), prueba, label='Prueba')
-        plt.plot(range(nom_training, len(data)), proyeccion, label='Proyección')
-        plt.legend()
-        plt.show()
+        self.window.frameHolt.show_graph(datos, proyeccion, entrenamiento, prueba, num_entrenamiento)
+        self.window.theCanvas = self.window.frameHolt.canvas
+        self.window.restartButton.configure(state="enabled")
+        self.window.exportButton.configure(state="enabled")
 
     def winters(self):
-        
-        data = self.window.file["TAVG"]
-        
-        modelo = ExponentialSmoothing(data, seasonal_periods=4, trend='add', seasonal='add')
-
+        datos = self.window.file["TAVG"]
+        entrenamiento_porcentaje = 0.8
+        num_entrenamiento = int(len(datos) * entrenamiento_porcentaje)
+        entrenamiento = datos[:num_entrenamiento]
+        prueba = datos[num_entrenamiento:]
+        modelo = ExponentialSmoothing(entrenamiento, seasonal_periods=12, trend='add', seasonal='add')
         ajuste = modelo.fit()
+        proyeccion = ajuste.forecast(steps=len(prueba))
+        self.window.frameWinters.show_graph(datos, proyeccion, entrenamiento, prueba, num_entrenamiento)
+        self.window.theCanvas = self.window.frameWinters.canvas
+        self.window.restartButton.configure(state="enabled")
+        self.window.exportButton.configure(state="enabled")
 
-        proyeccion = ajuste.forecast(steps=5)
-
-        plt.plot(data, label='data')
-        plt.plot(range(len(data), len(data) + len(proyeccion)), proyeccion, label='Proyección')
-        plt.legend()
-        plt.show()
-        
-    def simple_exp_smoothing(self):
-        
-        data = self.window.file["TAVG"]
-        
-        modelo = SimpleExpSmoothing(data)
-
+    def simplexExp(self):
+        datos = self.window.file["TAVG"]
+        entrenamiento_porcentaje = 0.8
+        num_entrenamiento = int(len(datos) * entrenamiento_porcentaje)
+        entrenamiento = datos[:num_entrenamiento]
+        prueba = datos[num_entrenamiento:]
+        modelo = ExponentialSmoothing(entrenamiento, trend='mul', seasonal='mul', seasonal_periods=12)
         ajuste = modelo.fit()
+        proyeccion = ajuste.forecast(steps=len(prueba))
+        self.window.frameSimpleExp.show_graph(datos, proyeccion, entrenamiento, prueba, num_entrenamiento)
+        self.window.theCanvas = self.window.frameSimpleExp.canvas
+        self.window.restartButton.configure(state="enabled")
+        self.window.exportButton.configure(state="enabled")
 
-        proyeccion = ajuste.forecast(steps=5)
+    @staticmethod
+    def showDataResume(file):
+        dataResume = []
+        dataResume.append(file['TAVG'].mean())
+        dataResume.append(file['TAVG'].max())
+        dataResume.append(file['TAVG'].min())
+        dataResume.append(file.loc[file['TAVG'].idxmax(), 'DATE'])
+        dataResume.append(file.loc[file['TAVG'].idxmin(), 'DATE'])
+        return dataResume
+    
+    def restartDataResumeAndGraphics(self):
+        # self.window.labelLast.configure(text="Last analysis data results: " + " Press Analyze Data button to see your file analysis results.", state="disabled")
+        # self.window.label_promedio_tavg.configure(text="Promedio de TAVG: N/A", state="disabled")
+        # self.window.label_temp_max.configure(text="Temperatura máxima: N/A", state="disabled")
+        # self.window.label_temp_min.configure(text="Temperatura mínima: N/A", state="disabled")
+        # self.window.label_fecha_temp_max.configure(text="Fecha con temperatura máxima: N/A", state="disabled")
+        # self.window.label_fecha_temp_min.configure(text="Fecha con temperatura mínima: N/A", state="disabled")
+        self.window.frameHolt.removeFigure()
+        self.window.frameWinters.removeFigure()
+        self.window.frameSimpleExp.removeFigure()
+        self.window.restartButton.configure(state="disabled")
+        self.window.exportButton.configure(state="disabled")
+        
+    @staticmethod
+    def exportFileToExcel(file_data, canvas):
+        df = pd.DataFrame([file_data], columns=['TAVG Mean', 'TAVG Max', 'TAVG Min', 'DATE Max', 'DATE Min', 'File Name', 'File Path', 'Excel File'])
+        columns_to_drop = ['File Name', 'File Path', 'Excel File']
+        df = df.drop(columns=columns_to_drop)
+        wb = Workbook()
+        ws = wb.active
+        headers = list(df.columns)
+        ws.append(headers)
+        values = list(df.iloc[0])
+        ws.append(values)
+        image_data = io.BytesIO()
+        canvas.print_png(image_data)
+        image_data.seek(0)
+        pil_image = Image.open(image_data)
+        xl_image = xlImage(pil_image)
+        ws.add_image(xl_image, 'A10')
+        wb.save("data_analysis.xlsx")
 
-        plt.plot(data, label='datos')
-        plt.plot(range(len(data), len(data) + len(proyeccion)), proyeccion, label='Proyección')
-        plt.legend()
-        plt.show()
+    # def obtainFile(self): 
+    #     datos = self.window.file["TAVG"]
+    #     modelo = Holt(datos)
+    #     ajuste = modelo.fit(optimized=True)
+    #     proyeccion = ajuste.forecast(steps=80)
+    #     plt.plot(datos, label='Datos')
+    #     plt.plot(range(len(datos), len(datos) + len(proyeccion)), proyeccion, label='Proyección')
+    #     plt.legend()
+    #     plt.show()
