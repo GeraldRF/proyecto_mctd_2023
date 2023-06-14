@@ -68,10 +68,11 @@ class ProgramUI(customtkinter.CTk):
         self.geometry("1000x780")
         self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(1, weight=2)
-        self.grid_rowconfigure(2, weight=1)
+        self.grid_rowconfigure(0, weight=0)
+        self.grid_rowconfigure(1, weight=0)
+        self.grid_rowconfigure(2, weight=0)
         self.grid_rowconfigure(3, weight=2)
         self.resizable(False, False)
-
 
         self.frameImage = customtkinter.CTkFrame(self)
         self.frameImage.grid(row=0, column=0, padx=10, pady=5, sticky="n")
