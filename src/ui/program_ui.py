@@ -16,7 +16,7 @@ class MyGeneratedGraph(customtkinter.CTkFrame):
         self.image_path_csv = os.path.join(self.project_dir, "assets/files/line-graph.png")
         self.image_csv = Image.open(self.image_path_csv)
        
-        self.figure = plt.figure(figsize=(6, 4))
+        self.figure = plt.figure(figsize=(6, 3.5))
         self.canvas = FigureCanvasTkAgg(self.figure, master=self)
         
         self.canvas.get_tk_widget().grid(row=2, column=0, padx=10, pady=10)
@@ -65,13 +65,12 @@ class ProgramUI(customtkinter.CTk):
         self.theCanvas = None
         self.file = None
         self.title("Proyecto - Métodos Cuantitativos 2023")
-        self.geometry("1000x870")
+        self.geometry("1000x780")
         self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(1, weight=2)
-        self.grid_rowconfigure(3, weight=0, minsize=500)
         self.resizable(False, False)
 
-        #MAKE A FRAME FOT THE IMAGE AND THE LABEL
+
         self.frameImage = customtkinter.CTkFrame(self)
         self.frameImage.grid(row=0, column=0, padx=10, pady=5, sticky="nsew")
         self.frameImage.grid_columnconfigure(0, weight=1)
@@ -94,7 +93,7 @@ class ProgramUI(customtkinter.CTk):
         button.grid(row=2, column=0, padx=20, pady=5, sticky="nsew")
 
         self.treeview = ttk.Treeview(self)
-        self.treeview.grid(row=3, column=0, padx=20, rowspan=4, pady=10, sticky="nsew")
+        self.treeview.grid(row=3, column=0, padx=20, rowspan=7, pady=10, sticky="nsew")
         self.treeview["columns"] = ("Date", "TAVG")
         self.treeview.heading("#0", text="C. Datos")
         self.treeview.column("#0", width=70, anchor="center", stretch=False, minwidth=70)
@@ -102,11 +101,11 @@ class ProgramUI(customtkinter.CTk):
             self.treeview.heading(col, text=col)
             self.treeview.column(col, width=80, anchor="center", minwidth=80)
         scroll_y = customtkinter.CTkScrollbar(self, command=self.treeview.yview)
-        scroll_y.grid(row=3, column=0, padx=2, rowspan=4, sticky="nse")
+        scroll_y.grid(row=3, column=0, padx=2, rowspan=7, sticky="nse")
         self.treeview.configure(yscrollcommand=scroll_y.set)
 
         tabview = customtkinter.CTkTabview(self)
-        tabview.grid(row=0, column=1, padx=20, rowspan=4, pady=10, sticky="nsew")
+        tabview.grid(row=0, column=1, padx=20, rowspan=8, pady=10, sticky="nsew")
 
         tabview.add("Holt")
         tabview.add("Winters") 
@@ -152,19 +151,19 @@ class ProgramUI(customtkinter.CTk):
         image_path_arrow = os.path.join(self.project_dir, "assets/files/reload.png")
         image_arrow = ImageTk.PhotoImage(file=image_path_arrow)
         self.restartButton = customtkinter.CTkButton(master=self, text="Restart Graphs", command=None, fg_color="gray4", border_width=1 ,border_color="light yellow", image=image_arrow, compound="right")
-        self.restartButton.grid(row=4, column=1, padx=20, ipady=1, sticky="w")
+        self.restartButton.grid(row=8, column=1, padx=20, ipady=1, sticky="w")
         self.restartButton.configure(state="disabled")
 
         image_path_export = os.path.join(self.project_dir, "assets/files/app.png")
         image_export = ImageTk.PhotoImage(file=image_path_export)
         self.exportButton = customtkinter.CTkButton(master=self, text="Export as a .xlsx", command=None, fg_color="gray4", border_width=1,border_color="light yellow", image=image_export, compound="right")
-        self.exportButton.grid(row=4, column=1, padx=180, pady=5, sticky="w")
+        self.exportButton.grid(row=8, column=1, padx=180, pady=5, sticky="w")
         self.exportButton.configure(state="disabled")
         
 
         #Frame para mostrar los resultados del análisis
         self.frameResultResume = customtkinter.CTkFrame(self)
-        self.frameResultResume.grid(row=5, column=1, columnspan=4, padx=20, pady=10, sticky="nsew")
+        self.frameResultResume.grid(row=9, column=1, padx=20, pady=10, sticky="nsew")
          
         #Last analys data resume
         self.labelLast = customtkinter.CTkLabel(master=self.frameResultResume, text="Last analysis data results:" + " Press Analyze Data button to see your file analysis results."
@@ -173,23 +172,23 @@ class ProgramUI(customtkinter.CTk):
 
         # Imprimir los resultados en pantalla
         self.label_promedio_tavg = customtkinter.CTkLabel(self.frameResultResume, text=f"Promedio de TAVG: " + "N/A")
-        self.label_promedio_tavg.grid(row=6, column=0, padx=20, pady=0, sticky="w")
+        self.label_promedio_tavg.grid(row=1, column=0, padx=20, pady=0, sticky="w")
         self.label_promedio_tavg.configure(state="disabled")
 
         self.label_temp_max = customtkinter.CTkLabel(self.frameResultResume, text=f"Temperatura máxima: " + "N/A")
-        self.label_temp_max.grid(row=7, column=0, padx=20, pady=0, sticky="w")
+        self.label_temp_max.grid(row=2, column=0, padx=20, pady=0, sticky="w")
         self.label_temp_max.configure(state="disabled")
 
         self.label_temp_min = customtkinter.CTkLabel(self.frameResultResume, text=f"Temperatura mínima: " + "N/A")
-        self.label_temp_min.grid(row=8, column=0, padx=20, pady=0, sticky="w")
+        self.label_temp_min.grid(row=3, column=0, padx=20, pady=0, sticky="w")
         self.label_temp_min.configure(state="disabled")
 
         self.label_fecha_temp_max = customtkinter.CTkLabel(self.frameResultResume, text=f"Fecha con temperatura máxima: " + "N/A")
-        self.label_fecha_temp_max.grid(row=9, column=0, padx=20, pady=0, sticky="w")
+        self.label_fecha_temp_max.grid(row=4, column=0, padx=20, pady=0, sticky="w")
         self.label_fecha_temp_max.configure(state="disabled")
 
         self.label_fecha_temp_min = customtkinter.CTkLabel(self.frameResultResume, text=f"Fecha con temperatura mínima: " + "N/A")
-        self.label_fecha_temp_min.grid(row=10, column=0, padx=20, pady=0, sticky="w")
+        self.label_fecha_temp_min.grid(row=5, column=0, padx=20, pady=0, sticky="w")
         self.label_fecha_temp_min.configure(state="disabled")
 
         
