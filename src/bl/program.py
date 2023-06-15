@@ -1,6 +1,8 @@
 import pandas as pd
 from statsmodels.tsa.api import Holt
 from statsmodels.tsa.api import ExponentialSmoothing
+from statsmodels.tsa.api import SimpleExpSmoothing
+from sklearn.metrics import mean_absolute_error
 from openpyxl import Workbook
 from openpyxl.drawing.image import Image as xlImage
 from PIL import Image
@@ -18,43 +20,113 @@ class Program:
         self.window.mainloop()
 
     def holt(self):
-        datos = self.window.file["TAVG"]
-        entrenamiento_porcentaje = 0.8
-        num_entrenamiento = int(len(datos) * entrenamiento_porcentaje)
-        entrenamiento = datos[:num_entrenamiento]
-        prueba = datos[num_entrenamiento:]
-        modelo = Holt(entrenamiento)
-        ajuste = modelo.fit()
-        proyeccion = ajuste.forecast(steps=len(prueba))
-        self.window.frameHolt.show_graph(datos, proyeccion, entrenamiento, prueba, num_entrenamiento)
+        data = self.window.file["TAVG"]
+        training_percentage = 0.8
+        training_count = int(len(data) * training_percentage)
+        
+        training_data = data[:training_count]
+        test_data = data[training_count:]
+        
+        if self.window.alfa_entry.get() != "":
+            alpha = float(self.window.alfa_entry.get())
+        else:
+            alpha = None
+            
+        if self.window.beta_entry.get() != "":
+            beta = float(self.window.beta_entry.get())
+        else:
+            beta = None
+        
+        model = Holt(data)
+        if alpha and beta:
+            model_fit = model.fit(smoothing_level=alpha, smoothing_trend=beta)
+        else:
+            model_fit = model.fit()
+            
+
+        forecast = model_fit.forecast(steps=len(test_data))
+        
+        mae = mean_absolute_error(test_data, forecast)
+    
+        self.window.mca.configure(text=f"Error medio absolute: {mae}")
+        self.window.mca.configure(state="normal")
+        
+        self.window.frameHolt.show_graph(data, forecast, training_data, test_data, training_count)
         self.window.theCanvas = self.window.frameHolt.canvas
         self.window.restartButton.configure(state="enabled")
         self.window.exportButton.configure(state="enabled")
 
     def winters(self):
-        datos = self.window.file["TAVG"]
-        entrenamiento_porcentaje = 0.8
-        num_entrenamiento = int(len(datos) * entrenamiento_porcentaje)
-        entrenamiento = datos[:num_entrenamiento]
-        prueba = datos[num_entrenamiento:]
-        modelo = ExponentialSmoothing(entrenamiento, seasonal_periods=12, trend='add', seasonal='add')
-        ajuste = modelo.fit()
-        proyeccion = ajuste.forecast(steps=len(prueba))
-        self.window.frameWinters.show_graph(datos, proyeccion, entrenamiento, prueba, num_entrenamiento)
+        data = self.window.file["TAVG"]
+        training_percentage = 0.8
+        training_count = int(len(data) * training_percentage)
+        
+        training_data = data[:training_count]
+        test_data = data[training_count:]
+        
+        model = ExponentialSmoothing(training_data, trend="add", seasonal="add", seasonal_periods=365)
+
+        if self.window.alfa_entry.get() != "":
+            alpha = float(self.window.alfa_entry.get())
+        else:
+            alpha = None
+            
+        if self.window.beta_entry.get() != "":
+            beta = float(self.window.beta_entry.get())
+        else:
+            beta = None
+            
+        if self.window.gamma_entry.get() != "":
+            gamma = float(self.window.gamma_entry.get())
+        else:
+            gamma = None
+        
+        if alpha and beta and gamma:
+            model_fit = model.fit(smoothing_level=alpha, smoothing_trend=beta, smoothing_seasonal=gamma)
+        else:
+            model_fit = model.fit()
+
+        forecast = model_fit.forecast(steps=len(test_data))
+        
+        mae = mean_absolute_error(test_data, forecast)
+        
+        self.window.mca.configure(text=f"Error medio absolute: {mae}")
+        self.window.mca.configure(state="normal")
+
+        self.window.frameWinters.show_graph(data, forecast, training_data, test_data, training_count)
+        
         self.window.theCanvas = self.window.frameWinters.canvas
         self.window.restartButton.configure(state="enabled")
         self.window.exportButton.configure(state="enabled")
 
     def simplexExp(self):
-        datos = self.window.file["TAVG"]
-        entrenamiento_porcentaje = 0.8
-        num_entrenamiento = int(len(datos) * entrenamiento_porcentaje)
-        entrenamiento = datos[:num_entrenamiento]
-        prueba = datos[num_entrenamiento:]
-        modelo = ExponentialSmoothing(entrenamiento, trend='mul', seasonal='mul', seasonal_periods=12)
-        ajuste = modelo.fit()
-        proyeccion = ajuste.forecast(steps=len(prueba))
-        self.window.frameSimpleExp.show_graph(datos, proyeccion, entrenamiento, prueba, num_entrenamiento)
+        data = self.window.file["TAVG"]
+        training_percentage = 0.8
+        training_count = int(len(data) * training_percentage)
+        
+        training_data = data[:training_count]
+        test_data = data[training_count:]
+        
+        if self.window.alfa_entry.get() != "":
+            alpha = float(self.window.alfa_entry.get())
+        else:
+            alpha = None
+            
+        model = SimpleExpSmoothing(data)
+        
+        if alpha:
+            model_fit = model.fit(smoothing_level=alpha, optimized=False)
+        else:
+            model_fit = model.fit()
+        
+        forecast = model_fit.forecast(steps=len(test_data))
+        
+        mae = mean_absolute_error(test_data, forecast)
+
+        self.window.mca.configure(text=f"Error medio absolute: {mae}")
+        self.window.mca.configure(state="normal")
+
+        self.window.frameSimpleExp.show_graph(data, forecast, training_data, test_data, training_count)
         self.window.theCanvas = self.window.frameSimpleExp.canvas
         self.window.restartButton.configure(state="enabled")
         self.window.exportButton.configure(state="enabled")

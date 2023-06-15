@@ -30,9 +30,9 @@ class MyGeneratedGraph(customtkinter.CTkFrame):
     def show_graph(self, datos, proyeccion, entrenamiento, prueba, num_entrenamiento):
         self.figure.clear() 
         ax = self.figure.add_subplot(111)
-        ax.plot(range(num_entrenamiento), entrenamiento, label='Entrenamiento')
-        ax.plot(range(num_entrenamiento, len(datos)), prueba, label='Prueba')
-        ax.plot(range(num_entrenamiento, len(datos)), proyeccion, label='Proyección')
+        ax.plot(entrenamiento, label='Entrenamiento')
+        ax.plot(prueba, label='Prueba')
+        ax.plot(proyeccion, label='Proyección')
         ax.legend()
         self.placeholder_text.set_text("") 
         self.canvas.draw()
@@ -40,9 +40,9 @@ class MyGeneratedGraph(customtkinter.CTkFrame):
     def show_graphWinters(self, datos, proyeccion, entrenamiento, prueba, num_entrenamiento):
         self.figure.clear() 
         ax = self.figure.add_subplot(111)
-        ax.plot(range(num_entrenamiento), entrenamiento, label='Entrenamiento')
-        ax.plot(range(num_entrenamiento, len(datos)), prueba, label='Prueba')
-        ax.plot(range(num_entrenamiento, len(datos)), proyeccion, label='Proyección')
+        ax.plot(entrenamiento, label='Entrenamiento')
+        ax.plot(prueba, label='Prueba')
+        ax.plot(proyeccion, label='Proyección')
         ax.legend()
         self.placeholder_text.set_text("")
         self.canvas.draw()
@@ -66,6 +66,15 @@ class ProgramUI(customtkinter.CTk):
         self.file = None
         self.title("Proyecto - Métodos Cuantitativos 2023")
         self.geometry("1000x780")
+        
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+
+        x = (screen_width - 1000) // 2
+        y = (screen_height - 780) // 2
+
+        self.geometry(f"+{x}+{y}")
+        
         self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(1, weight=2)
         self.grid_rowconfigure(0, weight=0)
@@ -186,13 +195,9 @@ class ProgramUI(customtkinter.CTk):
         self.label_temp_min.grid(row=3, column=0, padx=20, pady=0, sticky="w")
         self.label_temp_min.configure(state="disabled")
 
-        self.label_fecha_temp_max = customtkinter.CTkLabel(self.frameResultResume, text=f"Fecha con temperatura máxima: " + "N/A")
-        self.label_fecha_temp_max.grid(row=4, column=0, padx=20, pady=0, sticky="w")
-        self.label_fecha_temp_max.configure(state="disabled")
-
-        self.label_fecha_temp_min = customtkinter.CTkLabel(self.frameResultResume, text=f"Fecha con temperatura mínima: " + "N/A")
-        self.label_fecha_temp_min.grid(row=5, column=0, padx=20, pady=0, sticky="w")
-        self.label_fecha_temp_min.configure(state="disabled")
+        self.mca = customtkinter.CTkLabel(self.frameResultResume, text=f"Error medio absolute: " + "Analize to see")
+        self.mca.grid(row=4, column=0, padx=20, pady=0, sticky="w")
+        self.mca.configure(state="disabled")
 
         
     #Acciones de la UI          
@@ -216,14 +221,8 @@ class ProgramUI(customtkinter.CTk):
             self.labelLast.configure(text="Last analysis data results:")
             self.label_promedio_tavg.configure(text=f"Promedio de TAVG: {self.newData[0]}")
             self.label_promedio_tavg.configure(state="normal")
-            self.label_temp_max.configure(text=f"Temperatura máxima: {self.newData[1]}")
-            self.label_temp_max.configure(state="normal")
             self.label_temp_min.configure(text=f"Temperatura mínima: {self.newData[2]}")
             self.label_temp_min.configure(state="normal")
-            self.label_fecha_temp_max.configure(text=f"Fecha con temperatura máxima: {self.newData[3]}")
-            self.label_fecha_temp_max.configure(state="normal")
-            self.label_fecha_temp_min.configure(text=f"Fecha con temperatura mínima: {self.newData[4]}")
-            self.label_fecha_temp_min.configure(state="normal")
             for i, row in self.file.iterrows():
                 date = row["DATE"]
                 tavg = f"{row['TAVG']} C°"
