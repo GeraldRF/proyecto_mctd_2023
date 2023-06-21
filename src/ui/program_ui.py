@@ -127,10 +127,10 @@ class ProgramUI(customtkinter.CTk):
         #Componentes de la pestaña Holt
         self.labelHolt = customtkinter.CTkLabel(master=tabview.tab("Holt"), text="Configure the HOLT method")
         self.labelHolt.grid(row=0, column=1, padx=40, pady=5, sticky="w")
-        self.alfa_entry = customtkinter.CTkEntry(master=tabview.tab("Holt"), placeholder_text="Alfa - α")
-        self.alfa_entry.grid(row=1, column=1, padx=40, pady=5, sticky="w")
-        self.beta_entry = customtkinter.CTkEntry(master=tabview.tab("Holt"), placeholder_text="Beta - β")
-        self.beta_entry.grid(row=1, column=2, padx=0, pady=5, sticky="w")
+        self.alfa_entry_holt = customtkinter.CTkEntry(master=tabview.tab("Holt"), placeholder_text="Alfa - α")
+        self.alfa_entry_holt.grid(row=1, column=1, padx=40, pady=5, sticky="w")
+        self.beta_entry_holt = customtkinter.CTkEntry(master=tabview.tab("Holt"), placeholder_text="Beta - β")
+        self.beta_entry_holt.grid(row=1, column=2, padx=0, pady=5, sticky="w")
         self.buttonAnalyzeHolt = customtkinter.CTkButton(master=tabview.tab("Holt"), text="Analyze data", command=None, state="disabled")
         self.buttonAnalyzeHolt.grid(row=1, column=4, padx=20, pady=5, sticky="w")
         self.frameHolt = MyGeneratedGraph(master=tabview.tab("Holt")) #Genera el gráfico en pantalla
@@ -139,12 +139,12 @@ class ProgramUI(customtkinter.CTk):
         #Componentes de la pestaña Winters
         self.labelWinters = customtkinter.CTkLabel(master=tabview.tab("Winters"), text="Configure the WINTERS method")
         self.labelWinters.grid(row=0, column=1, padx=30, pady=5, sticky="w")
-        self.alfa_entry = customtkinter.CTkEntry(master=tabview.tab("Winters"), placeholder_text="Alfa - α", width=100)
-        self.alfa_entry.grid(row=1, column=1, padx=30, pady=5, sticky="nsew")
-        self.beta_entry = customtkinter.CTkEntry(master=tabview.tab("Winters"), placeholder_text="Beta - β", width=100)
-        self.beta_entry.grid(row=1, column=2, padx=0, pady=5, sticky="w")
-        self.gamma_entry = customtkinter.CTkEntry(master=tabview.tab("Winters"), placeholder_text="Gamma - γ", width=100)
-        self.gamma_entry.grid(row=1, column=3, padx=0, pady=5, sticky="w")
+        self.alfa_entry_winters = customtkinter.CTkEntry(master=tabview.tab("Winters"), placeholder_text="Alfa - α", width=100)
+        self.alfa_entry_winters.grid(row=1, column=1, padx=30, pady=5, sticky="nsew")
+        self.beta_entry_winters = customtkinter.CTkEntry(master=tabview.tab("Winters"), placeholder_text="Beta - β", width=100)
+        self.beta_entry_winters.grid(row=1, column=2, padx=0, pady=5, sticky="w")
+        self.gamma_entry_winters = customtkinter.CTkEntry(master=tabview.tab("Winters"), placeholder_text="Gamma - γ", width=100)
+        self.gamma_entry_winters.grid(row=1, column=3, padx=0, pady=5, sticky="w")
         self.buttonAnalyzeWinters = customtkinter.CTkButton(master=tabview.tab("Winters"), text="Analyze data", command=None, state="disabled")
         self.buttonAnalyzeWinters.grid(row=1, column=4, padx=20, pady=5, sticky="w")
         self.frameWinters = MyGeneratedGraph(master=tabview.tab("Winters")) #Genera el gráfico en pantalla
@@ -153,8 +153,8 @@ class ProgramUI(customtkinter.CTk):
         #Componentes de la pestaña Simple Exp. Smoothing
         self.labelSimple = customtkinter.CTkLabel(master=tabview.tab("Simple Exp. Smoothing"), text="Configure the Simple Exp. Smoothing method")
         self.labelSimple.grid(row=0, column=1, padx=30, pady=5, sticky="w")
-        self.alfa_entry = customtkinter.CTkEntry(master=tabview.tab("Simple Exp. Smoothing"), placeholder_text="Alfa - α", width=100)
-        self.alfa_entry.grid(row=1, column=1, padx=30, pady=5, sticky="nsew")
+        self.alfa_entry_simple = customtkinter.CTkEntry(master=tabview.tab("Simple Exp. Smoothing"), placeholder_text="Alfa - α", width=100)
+        self.alfa_entry_simple.grid(row=1, column=1, padx=30, pady=5, sticky="nsew")
         self.buttonAnalyzeSimpleExp = customtkinter.CTkButton(master=tabview.tab("Simple Exp. Smoothing"), text="Analyze data", command=None, state="disabled")
         self.buttonAnalyzeSimpleExp.grid(row=1, column=4, padx=20, pady=5, sticky="w")
         self.frameSimpleExp = MyGeneratedGraph(master=tabview.tab("Simple Exp. Smoothing")) #Genera el gráfico en pantalla

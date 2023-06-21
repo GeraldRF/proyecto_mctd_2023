@@ -7,6 +7,7 @@ from openpyxl import Workbook
 from openpyxl.drawing.image import Image as xlImage
 from PIL import Image
 import io
+import numpy as np
 
 class Program: 
     def __init__(self, window):
@@ -19,32 +20,44 @@ class Program:
         self.window.exportButton.configure(command=self.window.exportFileToExcel)
         self.window.mainloop()
 
+   
     def holt(self):
-        data = self.window.file["TAVG"]
-        training_percentage = 0.8
-        training_count = int(len(data) * training_percentage)
+        data = {}
+        data['TAVG'] = self.window.file["TAVG"]
+        training_percentage = 0.5
+        training_count = int(len(data['TAVG']) * training_percentage)
         
+        data['DATE'] = pd.to_datetime(self.window.file['DATE'])
+        data = pd.DataFrame(data)  # Convierte el diccionario en un DataFrame de pandas
+        data = data.set_index('DATE') 
+        date_index = pd.date_range(start=self.window.file['DATE'][0], periods=len(self.window.file['DATE']), freq='D')
+        data.index = date_index
+
         training_data = data[:training_count]
         test_data = data[training_count:]
         
-        if self.window.alfa_entry.get() != "":
-            alpha = float(self.window.alfa_entry.get())
+        if self.window.alfa_entry_holt.get() != "":
+            alpha = float(self.window.alfa_entry_holt.get())
         else:
             alpha = None
             
-        if self.window.beta_entry.get() != "":
-            beta = float(self.window.beta_entry.get())
+        if self.window.beta_entry_holt.get() != "":
+            beta = float(self.window.beta_entry_holt.get())
         else:
             beta = None
-        
-        model = Holt(data)
+
+        model = Holt(data, exponential=False)
+
         if alpha and beta:
-            model_fit = model.fit(smoothing_level=alpha, smoothing_trend=beta)
+            model_fit = model.fit(smoothing_level=alpha, smoothing_trend=beta, optimized=False)
         else:
             model_fit = model.fit()
-            
 
-        forecast = model_fit.forecast(steps=len(test_data))
+        test_data.index = pd.date_range(start=test_data.index[0], periods=len(test_data), freq='D')
+
+        forecast = model_fit.predict(start=test_data.index[0], end=test_data.index[-1])
+        
+        print(forecast)
         
         mae = mean_absolute_error(test_data, forecast)
     
@@ -57,36 +70,47 @@ class Program:
         self.window.exportButton.configure(state="enabled")
 
     def winters(self):
-        data = self.window.file["TAVG"]
+        data = {}
+        data['TAVG'] = self.window.file["TAVG"]
         training_percentage = 0.8
-        training_count = int(len(data) * training_percentage)
+        training_count = int(len(data['TAVG']) * training_percentage)
         
+        data['DATE'] = pd.to_datetime(self.window.file['DATE'])
+        data = pd.DataFrame(data)  # Convierte el diccionario en un DataFrame de pandas
+        data = data.set_index('DATE') 
+        date_index = pd.date_range(start=self.window.file['DATE'][0], periods=len(self.window.file['DATE']), freq='D')
+        data.index = date_index
+
         training_data = data[:training_count]
         test_data = data[training_count:]
-        
-        model = ExponentialSmoothing(training_data, trend="add", seasonal="add", seasonal_periods=365)
 
-        if self.window.alfa_entry.get() != "":
-            alpha = float(self.window.alfa_entry.get())
+        model = ExponentialSmoothing(training_data, trend="add", seasonal="mul", seasonal_periods=365)
+        
+        if self.window.alfa_entry_winters.get() != "":
+            alpha = float(self.window.alfa_entry_winters.get())
         else:
             alpha = None
             
-        if self.window.beta_entry.get() != "":
-            beta = float(self.window.beta_entry.get())
+        if self.window.beta_entry_winters.get() != "":
+            beta = float(self.window.beta_entry_winters.get())
         else:
             beta = None
             
-        if self.window.gamma_entry.get() != "":
-            gamma = float(self.window.gamma_entry.get())
+        if self.window.gamma_entry_winters.get() != "":
+            gamma = float(self.window.gamma_entry_winters.get())
         else:
             gamma = None
         
         if alpha and beta and gamma:
-            model_fit = model.fit(smoothing_level=alpha, smoothing_trend=beta, smoothing_seasonal=gamma)
+            model_fit = model.fit(smoothing_level=alpha, smoothing_trend=beta, smoothing_seasonal=gamma, optimized=False)
         else:
             model_fit = model.fit()
 
-        forecast = model_fit.forecast(steps=len(test_data))
+        test_data.index = pd.date_range(start=test_data.index[0], periods=len(test_data), freq='D')
+
+        forecast = model_fit.predict(start=test_data.index[0], end=test_data.index[-1])
+        
+        print(forecast)
         
         mae = mean_absolute_error(test_data, forecast)
         
@@ -100,15 +124,22 @@ class Program:
         self.window.exportButton.configure(state="enabled")
 
     def simplexExp(self):
-        data = self.window.file["TAVG"]
-        training_percentage = 0.8
-        training_count = int(len(data) * training_percentage)
+        data = {}
+        data['TAVG'] = self.window.file["TAVG"]
+        training_percentage = 0.5
+        training_count = int(len(data['TAVG']) * training_percentage)
         
+        data['DATE'] = pd.to_datetime(self.window.file['DATE'])
+        data = pd.DataFrame(data)  # Convierte el diccionario en un DataFrame de pandas
+        data = data.set_index('DATE') 
+        date_index = pd.date_range(start=self.window.file['DATE'][0], periods=len(self.window.file['DATE']), freq='D')
+        data.index = date_index
+
         training_data = data[:training_count]
         test_data = data[training_count:]
         
-        if self.window.alfa_entry.get() != "":
-            alpha = float(self.window.alfa_entry.get())
+        if self.window.alfa_entry_simple.get() != "":
+            alpha = float(self.window.alfa_entry_simple.get())
         else:
             alpha = None
             
@@ -119,7 +150,11 @@ class Program:
         else:
             model_fit = model.fit()
         
-        forecast = model_fit.forecast(steps=len(test_data))
+        test_data.index = pd.date_range(start=test_data.index[0], periods=len(test_data), freq='D')
+
+        forecast = model_fit.predict(start=test_data.index[0], end=test_data.index[-1])
+        
+        print(forecast)
         
         mae = mean_absolute_error(test_data, forecast)
 
