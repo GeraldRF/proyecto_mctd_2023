@@ -61,7 +61,7 @@ class Program:
         
         mae = mean_absolute_error(test_data, forecast)
     
-        self.window.mca.configure(text=f"Error medio absolute: {mae}")
+        self.window.mca.configure(text=f"Mean absolute error: {mae}")
         self.window.mca.configure(state="normal")
         
         self.window.frameHolt.show_graph(data, forecast, training_data, test_data, training_count)
@@ -174,6 +174,7 @@ class Program:
         dataResume.append(file['TAVG'].min())
         dataResume.append(file.loc[file['TAVG'].idxmax(), 'DATE'])
         dataResume.append(file.loc[file['TAVG'].idxmin(), 'DATE'])
+
         return dataResume
     
     def restartDataResumeAndGraphics(self):
@@ -190,22 +191,51 @@ class Program:
         self.window.exportButton.configure(state="disabled")
         
     @staticmethod
-    def exportFileToExcel(file_data, canvas):
-        df = pd.DataFrame([file_data], columns=['TAVG Mean', 'TAVG Max', 'TAVG Min', 'DATE Max', 'DATE Min', 'File Name', 'File Path', 'Excel File'])
-        columns_to_drop = ['File Name', 'File Path', 'Excel File']
-        df = df.drop(columns=columns_to_drop)
+    def exportFileToExcel(file_data, mca, canvas, histogram, comparativeMin, comparativeMax, barImage):
+        df = pd.DataFrame([file_data], columns=['TAVG Mean', 'TAVG Max', 'TAVG Min', 'DATE Max', 'DATE Min'])
         wb = Workbook()
         ws = wb.active
         headers = list(df.columns)
         ws.append(headers)
         values = list(df.iloc[0])
         ws.append(values)
+        ws.append([mca])
         image_data = io.BytesIO()
         canvas.print_png(image_data)
         image_data.seek(0)
         pil_image = Image.open(image_data)
         xl_image = xlImage(pil_image)
         ws.add_image(xl_image, 'A10')
+
+        pngHistogram = histogram.getvalue()
+        image_data = io.BytesIO(pngHistogram)
+        image_data.seek(0)
+        pil_image = Image.open(image_data)
+        xl_image = xlImage(pil_image)
+        ws.add_image(xl_image, 'K10')
+
+        pngComparativeMin = comparativeMin.getvalue()
+        image_data = io.BytesIO(pngComparativeMin)
+        image_data.seek(0)
+        pil_image = Image.open(image_data)
+        xl_image = xlImage(pil_image)
+        ws.add_image(xl_image, 'A30')
+
+        pngComparativeMax = comparativeMax.getvalue()
+        image_data = io.BytesIO(pngComparativeMax)
+        image_data.seek(0)
+        pil_image = Image.open(image_data)
+        xl_image = xlImage(pil_image)
+        ws.add_image(xl_image, 'K30')
+
+        pngBar = barImage.getvalue()
+        image_data = io.BytesIO(pngBar)
+        image_data.seek(0)
+        pil_image = Image.open(image_data)
+        xl_image = xlImage(pil_image)
+        ws.add_image(xl_image, 'V30')
+    
+
         wb.save("data_analysis.xlsx")
 
     # def obtainFile(self): 

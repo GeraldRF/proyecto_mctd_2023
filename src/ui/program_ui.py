@@ -7,6 +7,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import src.bl.program as program
+from io import BytesIO
 
 class MyGeneratedGraph(customtkinter.CTkFrame):
     def __init__(self, master):
@@ -172,7 +173,6 @@ class ProgramUI(customtkinter.CTk):
         self.exportButton.grid(row=8, column=1, padx=180, pady=5, sticky="w")
         self.exportButton.configure(state="disabled")
         
-
         #Frame para mostrar los resultados del análisis
         self.frameResultResume = customtkinter.CTkFrame(self)
         self.frameResultResume.grid(row=9, column=1, padx=20, pady=10, sticky="nsew")
@@ -183,19 +183,19 @@ class ProgramUI(customtkinter.CTk):
         self.labelLast.grid(row=0, column=0, padx=20, pady=5, sticky="w")
 
         # Imprimir los resultados en pantalla
-        self.label_promedio_tavg = customtkinter.CTkLabel(self.frameResultResume, text=f"Promedio de TAVG: " + "N/A")
+        self.label_promedio_tavg = customtkinter.CTkLabel(self.frameResultResume, text=f"Average TAVG: " + "N/A")
         self.label_promedio_tavg.grid(row=1, column=0, padx=20, pady=0, sticky="w")
         self.label_promedio_tavg.configure(state="disabled")
 
-        self.label_temp_max = customtkinter.CTkLabel(self.frameResultResume, text=f"Temperatura máxima: " + "N/A")
+        self.label_temp_max = customtkinter.CTkLabel(self.frameResultResume, text=f"Max. temperature: " + "N/A")
         self.label_temp_max.grid(row=2, column=0, padx=20, pady=0, sticky="w")
         self.label_temp_max.configure(state="disabled")
 
-        self.label_temp_min = customtkinter.CTkLabel(self.frameResultResume, text=f"Temperatura mínima: " + "N/A")
+        self.label_temp_min = customtkinter.CTkLabel(self.frameResultResume, text=f"Min. Temperature: " + "N/A")
         self.label_temp_min.grid(row=3, column=0, padx=20, pady=0, sticky="w")
         self.label_temp_min.configure(state="disabled")
 
-        self.mca = customtkinter.CTkLabel(self.frameResultResume, text=f"Error medio absolute: " + "Analize to see")
+        self.mca = customtkinter.CTkLabel(self.frameResultResume, text=f"Mean absolute error: " + "Analize to see")
         self.mca.grid(row=4, column=0, padx=20, pady=0, sticky="w")
         self.mca.configure(state="disabled")
 
@@ -210,18 +210,55 @@ class ProgramUI(customtkinter.CTk):
             self.buttonAnalyzeWinters.configure(state="normal")
             self.buttonAnalyzeSimpleExp.configure(state="normal")
             self.show_data()
-
+            
+    def saveHistogram(self):
+        bufferHistogram = BytesIO()
+        fileToHistogram = pd.read_csv(self.file_path)
+        fileToHistogram.drop(['STATION', 'NAME'], axis=1, inplace=True)
+        fileToHistogram.plot.hist(bins=12, alpha=0.5, figsize=(6, 3.5))
+        plt.savefig(bufferHistogram,format='png')
+        return bufferHistogram   
+    
+    def saveComparativMineGraph(self):
+        bufferComparativeMin = BytesIO()
+        fileToComparativeMin = pd.read_csv(self.file_path)
+        fileToComparativeMin.drop(['STATION', 'NAME'], axis=1, inplace=True)
+        fileToComparativeMin.plot.scatter(x= 'TAVG', y= 'TMIN', figsize=(6,4))
+        plt.xlabel('Avg. Temperature')
+        plt.ylabel('Min. Temperature')
+        plt.savefig(bufferComparativeMin,format='png')
+        return bufferComparativeMin
+    
+    def saveComparativeMaxGraph(self):
+        bufferComparativeMax = BytesIO()
+        fileToComparativeMax = pd.read_csv(self.file_path)
+        fileToComparativeMax.drop(['STATION', 'NAME'], axis=1, inplace=True)
+        fileToComparativeMax.plot.scatter(x= 'TAVG', y= 'TMAX', figsize=(6,4))
+        plt.xlabel('Avg. Temperature')
+        plt.ylabel('Max. Temperature')
+        plt.savefig(bufferComparativeMax,format='png')
+        return bufferComparativeMax
+    
+    def saveBarGraph(self):
+        bufferBar = BytesIO()
+        fileToBar = pd.read_csv(self.file_path)
+        fileToBar.drop(['STATION', 'NAME'], axis=1, inplace=True)
+        fileToBar.plot.line(subplots=True)
+        plt.savefig(bufferBar,format='png')
+        return bufferBar
+    
     def show_data(self):
         if self.file_path:
             self.file = pd.read_csv(self.file_path)
             self.treeview.delete(*self.treeview.get_children())
             self.newData = program.Program.showDataResume(self.file)
-            
             #Resume text labels
             self.labelLast.configure(text="Last analysis data results:")
-            self.label_promedio_tavg.configure(text=f"Promedio de TAVG: {self.newData[0]}")
+            self.label_promedio_tavg.configure(text=f"Average TAVG: {self.newData[0]}")
             self.label_promedio_tavg.configure(state="normal")
-            self.label_temp_min.configure(text=f"Temperatura mínima: {self.newData[2]}")
+            self.label_temp_max.configure(text=f"Max. temperature: {self.newData[1]}")
+            self.label_temp_max.configure(state="normal")
+            self.label_temp_min.configure(text=f"Min. Temperature: {self.newData[2]}")
             self.label_temp_min.configure(state="normal")
             for i, row in self.file.iterrows():
                 date = row["DATE"]
@@ -232,9 +269,11 @@ class ProgramUI(customtkinter.CTk):
        if self.file_path:
         # Exportar archivo y datos de resumen a Excel
         data_resume = program.Program.showDataResume(self.file)
-        data_resume.append(self.file_path.split("/")[-1])
-        data_resume.append(self.file_path)
-        data_resume.append(self.file_path.split("/")[-1].split(".")[0] + "_results.xlsx")
-        program.Program.exportFileToExcel(data_resume, self.theCanvas)
+        histogramImage = self.saveHistogram()
+        comparativeMinImage = self.saveComparativMineGraph()
+        comparativeMaxImage = self.saveComparativeMaxGraph()
+        barImage = self.saveBarGraph()
+
+        program.Program.exportFileToExcel(data_resume, self.mca.cget('text'), self.theCanvas, histogramImage, comparativeMinImage, comparativeMaxImage, barImage)
         messagebox.showinfo("File exported", "File exported successfully, check your project folder for the file.", parent=self)
             
